@@ -23,6 +23,7 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
 
   useEffect(() => {
     fetchCharacters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchCharacters = async () => {

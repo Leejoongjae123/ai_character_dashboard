@@ -8,6 +8,9 @@ interface DashboardStatsProps {
 
 export async function DashboardStats({ userId }: DashboardStatsProps) {
   const supabase = await createClient();
+  if (!supabase) {
+    return <div>Supabase 연결 오류</div>;
+  }
 
   // 통계 데이터 조회
   const [

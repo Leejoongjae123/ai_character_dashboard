@@ -19,6 +19,7 @@ export function UsageHistoryFilters({ onFilter, userId }: UsageHistoryFiltersPro
 
   useEffect(() => {
     fetchCharacters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchCharacters = async () => {
@@ -39,7 +40,11 @@ export function UsageHistoryFilters({ onFilter, userId }: UsageHistoryFiltersPro
     if (value === undefined || value === '' || value === 'all') {
       delete newFilters[key];
     } else {
-      newFilters[key] = value;
+      if (key === 'characterId') {
+        newFilters[key] = value as number;
+      } else {
+        (newFilters as Record<string, string | number>)[key] = value;
+      }
     }
     
     setFilters(newFilters);

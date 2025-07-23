@@ -10,6 +10,9 @@ interface RecentActivityProps {
 
 export async function RecentActivity({ userId }: RecentActivityProps) {
   const supabase = await createClient();
+  if (!supabase) {
+    return <div>Supabase 연결 오류</div>;
+  }
 
   const { data: logs } = await supabase
     .from('logs')

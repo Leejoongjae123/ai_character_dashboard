@@ -13,7 +13,8 @@ export async function createClient() {
     const errorMessage = 'Supabase 환경변수가 설정되지 않았습니다. .env.local 파일을 확인해주세요.';
     // 개발 환경에서만 에러를 발생시킴
     if (process.env.NODE_ENV === 'development') {
-      return new Error(errorMessage) as any;
+      console.error(errorMessage);
+      return null;
     }
     // 프로덕션에서는 null 반환
     return null;
@@ -23,7 +24,7 @@ export async function createClient() {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    const errorMessage = 'Supabase URL 또는 API 키가 누락되었습니다.';
+    console.error('Supabase URL 또는 API 키가 누락되었습니다.');
     return null;
   }
 
@@ -51,7 +52,7 @@ export async function createClient() {
         },
       },
     );
-  } catch (error) {
+  } catch {
     return null;
   }
 }

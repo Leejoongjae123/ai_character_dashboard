@@ -3,6 +3,9 @@ import { CharacterSettingsContent } from './components/character-settings-conten
 
 export default async function CharacterSettingsPage() {
   const supabase = await createClient();
+  if (!supabase) {
+    return <div>Supabase 연결 오류</div>;
+  }
   
   const {
     data: { user },

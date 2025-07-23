@@ -3,6 +3,9 @@ import { UsageHistoryContent } from './components/usage-history-content';
 
 export default async function UsageHistoryPage() {
   const supabase = await createClient();
+  if (!supabase) {
+    return <div>Supabase 연결 오류</div>;
+  }
   
   const {
     data: { user },

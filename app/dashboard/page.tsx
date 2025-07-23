@@ -4,6 +4,9 @@ import { RecentActivity } from './components/recent-activity';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  if (!supabase) {
+    return <div>Supabase 연결 오류</div>;
+  }
   
   const {
     data: { user },

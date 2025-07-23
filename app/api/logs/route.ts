@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+
     // logs와 character를 조인하여 조회
     let query = supabase
       .from('logs')

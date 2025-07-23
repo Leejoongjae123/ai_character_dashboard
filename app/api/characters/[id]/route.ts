@@ -10,6 +10,10 @@ interface Params {
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const supabase = await createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+    
     const { id } = await params;
     const body = await request.json();
 
@@ -35,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     }]);
 
     return NextResponse.json(character);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }
@@ -43,6 +47,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const supabase = await createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+    
     const { id } = await params;
 
     // 먼저 캐릭터 정보를 가져옴
@@ -74,7 +82,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 } 

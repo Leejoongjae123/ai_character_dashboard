@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -34,7 +34,7 @@ export function LoginForm() {
       } else {
         router.push('/dashboard');
       }
-    } catch (error) {
+    } catch {
       setError('로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

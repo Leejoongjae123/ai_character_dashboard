@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Character } from '@/lib/types';
-import { Edit, Eye } from 'lucide-react';
+import { Edit } from 'lucide-react';
 
 interface CharacterTableProps {
   characters: Character[];

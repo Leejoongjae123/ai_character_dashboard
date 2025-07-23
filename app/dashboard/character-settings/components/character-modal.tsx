@@ -107,7 +107,7 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
       }
 
       onClose();
-    } catch (error) {
+    } catch {
       alert('서버 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -133,7 +133,7 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
       }
 
       onClose();
-    } catch (error) {
+    } catch {
       alert('서버 오류가 발생했습니다.');
     } finally {
       setDeleting(false);

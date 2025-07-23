@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+    
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -22,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(characters);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }
@@ -30,6 +34,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+    
     const body = await request.json();
 
     const { data: character, error } = await supabase
@@ -53,7 +61,7 @@ export async function POST(request: NextRequest) {
     }]);
 
     return NextResponse.json(character);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 } 

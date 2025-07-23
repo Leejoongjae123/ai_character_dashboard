@@ -9,7 +9,7 @@ export interface Character {
   ability2?: string;
   ability2_min?: number;
   ability2_max?: number;
-  images?: any;
+  images?: Record<string, unknown> | string[] | null;
   user_id?: string;
   name?: string;
   is_active?: boolean;
@@ -25,8 +25,8 @@ export interface Statistics {
   total_usage_count?: number;
   last_activity?: string;
   favorite_character_id?: number;
-  weekly_usage?: any;
-  monthly_usage?: any;
+  weekly_usage?: Record<string, unknown> | number[] | null;
+  monthly_usage?: Record<string, unknown> | number[] | null;
 }
 
 export interface Log {
@@ -35,7 +35,7 @@ export interface Log {
   user_id?: string;
   action_type?: string;
   character_id?: number;
-  details?: any;
+  details?: Record<string, unknown> | null;
   ip_address?: string;
   user_agent?: string;
 }
