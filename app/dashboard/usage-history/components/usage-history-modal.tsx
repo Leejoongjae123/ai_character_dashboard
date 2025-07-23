@@ -27,7 +27,7 @@ export function UsageHistoryModal({ log, isOpen, onClose }: UsageHistoryModalPro
     });
   };
 
-  const formatPrompt = (prompt: any) => {
+  const formatPrompt = (prompt: Record<string, unknown> | string | null) => {
     if (!prompt) return '없음';
     if (typeof prompt === 'string') return prompt;
     return JSON.stringify(prompt, null, 2);

@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Supabase에서 반환되는 데이터 타입 정의
+interface LogWithCharacter {
+  id: number;
+  created_at: string;
+  character_id: number;
+  prompt: Record<string, unknown> | string | null;
+  origin_image?: string;
+  character_image?: string;
+  ability1?: string;
+  ability1_min?: number;
+  ability1_max?: number;
+  ability2?: string;
+  ability2_min?: number;
+  ability2_max?: number;
+  character: {
+    id: number;
+    name: string;
+    role: string;
+    user_id: string;
+  } | null;
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { searchParams } = new URL(request.url);
@@ -44,18 +66,18 @@ export async function GET(request: NextRequest) {
       query = query.lte('created_at', dateTo);
     }
 
-    const { data: logs, error } = await query;
+    const { data: logs, error } = await query as { data: LogWithCharacter[] | null, error: Error | null };
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // 검색 필터 (클라이언트에서 처리하기 위해 모든 데이터 반환 후 필터링)
-    let filteredLogs = logs || [];
+    let filteredLogs: LogWithCharacter[] = logs || [];
 
     if (search) {
       const searchTerm = search.toLowerCase();
-      filteredLogs = filteredLogs.filter(log => 
+      filteredLogs = filteredLogs.filter((log: LogWithCharacter) => 
         log.character?.name?.toLowerCase().includes(searchTerm) ||
         log.character?.role?.toLowerCase().includes(searchTerm) ||
         log.ability1?.toLowerCase().includes(searchTerm) ||
@@ -64,13 +86,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (abilityType) {
-      filteredLogs = filteredLogs.filter(log => 
+      filteredLogs = filteredLogs.filter((log: LogWithCharacter) => 
         log.ability1?.includes(abilityType) || log.ability2?.includes(abilityType)
       );
     }
 
     return NextResponse.json(filteredLogs);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '사용이력 조회 중 오류가 발생했습니다' },
       { status: 500 }

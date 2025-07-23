@@ -4,7 +4,7 @@ import { UsageLog } from '../types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Image } from 'lucide-react';
+import { Eye, Image as ImageIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -111,13 +111,13 @@ export function UsageHistoryTable({ logs, onRowClick }: UsageHistoryTableProps) 
                 <div className="flex items-center gap-2">
                   {log.origin_image && (
                     <Badge variant="outline" className="text-xs">
-                      <Image className="w-3 h-3 mr-1" />
+                      <ImageIcon className="w-3 h-3 mr-1" />
                       원본
                     </Badge>
                   )}
                   {log.character_image && (
                     <Badge variant="outline" className="text-xs">
-                      <Image className="w-3 h-3 mr-1" />
+                      <ImageIcon className="w-3 h-3 mr-1" />
                       캐릭터
                     </Badge>
                   )}

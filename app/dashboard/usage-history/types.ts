@@ -2,7 +2,7 @@ export interface UsageLog {
   id: number;
   created_at: string;
   character_id: number;
-  prompt: any; // jsonb
+  prompt: Record<string, unknown> | string | null; // jsonb
   origin_image?: string;
   character_image?: string;
   ability1?: string;
