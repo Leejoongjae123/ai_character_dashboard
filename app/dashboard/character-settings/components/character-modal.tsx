@@ -10,6 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Character } from '@/lib/types';
 import { CharacterFormData } from '../types';
 import { Trash2 } from 'lucide-react';
+import { ImageUploadSection } from './image-upload-section';
+import { SingleImageUpload } from './single-image-upload';
 
 interface CharacterModalProps {
   character: Character | null;
@@ -35,6 +37,9 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
   
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [characterImages, setCharacterImages] = useState<Array<{ url: string }>>([]);
+  const [pictureSelect, setPictureSelect] = useState<string | null>(null);
+  const [pictureCharacter, setPictureCharacter] = useState<string | null>(null);
 
   useEffect(() => {
     if (character && !isCreating) {
@@ -50,6 +55,11 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
         ability2_max: character.ability2_max || 100,
         is_active: character.is_active ?? true,
       });
+      
+      // picture_cartoon 데이터 로드
+      setCharacterImages(character.picture_cartoon || []);
+      setPictureSelect(character.picture_select || null);
+      setPictureCharacter(character.picture_character || null);
     } else if (isCreating) {
       setFormData({
         name: '',
@@ -63,6 +73,9 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
         ability2_max: 100,
         is_active: true,
       });
+      setCharacterImages([]);
+      setPictureSelect(null);
+      setPictureCharacter(null);
     }
   }, [character, isCreating, isOpen]);
 
@@ -81,6 +94,8 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
           body: JSON.stringify({
             ...formData,
             user_id: userId,
+            picture_select: pictureSelect,
+            picture_character: pictureCharacter,
           }),
         });
 
@@ -89,6 +104,23 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
           alert(error.error || '캐릭터 생성에 실패했습니다.');
           return;
         }
+
+        // 새로 생성된 캐릭터에 이미지가 있다면 업데이트
+        if (characterImages.length > 0) {
+          const newCharacter = await response.json();
+          
+          const imageResponse = await fetch(`/api/characters/${newCharacter.id}/images`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ images: characterImages }),
+          });
+
+          if (!imageResponse.ok) {
+            console.error('이미지 저장 실패, 하지만 캐릭터는 생성됨');
+          }
+        }
       } else if (character) {
         // 기존 캐릭터 수정
         const response = await fetch(`/api/characters/${character.id}`, {
@@ -96,7 +128,11 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            picture_select: pictureSelect,
+            picture_character: pictureCharacter,
+          }),
         });
 
         if (!response.ok) {
@@ -115,10 +151,14 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
   };
 
   const handleDelete = async () => {
-    if (!character) return;
+    if (!character) {
+      return;
+    }
     
     const confirmed = confirm(`"${character.name}" 캐릭터를 정말 삭제하시겠습니까?`);
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setDeleting(true);
     try {
@@ -145,6 +185,31 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleImagesChange = async (images: Array<{ url: string }>) => {
+    setCharacterImages(images);
+    
+    // 이미 생성된 캐릭터의 경우 즉시 서버에 업데이트
+    if (character && !isCreating) {
+      try {
+        const response = await fetch(`/api/characters/${character.id}/images`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ images }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error || '이미지 업데이트에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('이미지 업데이트 오류:', error);
+        alert('이미지 업데이트 중 오류가 발생했습니다.');
+      }
+    }
   };
 
   return (
@@ -262,6 +327,33 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
               onCheckedChange={(checked) => handleInputChange('is_active', checked as boolean)}
             />
             <Label htmlFor="is_active">활성 상태</Label>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <SingleImageUpload
+                label="캐릭터 선택 이미지"
+                description="캐릭터 선택 화면에서 보여질 대표 이미지"
+                characterId={character?.id}
+                initialImageUrl={pictureSelect}
+                onImageChange={setPictureSelect}
+                imageType="picture_select"
+              />
+              <SingleImageUpload
+                label="캐릭터 상세 이미지"
+                description="캐릭터 상세 화면에서 보여질 이미지"
+                characterId={character?.id}
+                initialImageUrl={pictureCharacter}
+                onImageChange={setPictureCharacter}
+                imageType="picture_character"
+              />
+            </div>
+            
+            <ImageUploadSection
+              characterId={character?.id}
+              initialImages={characterImages}
+              onImagesChange={handleImagesChange}
+            />
           </div>
 
           <DialogFooter className="gap-2">

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { History, Settings, Home } from 'lucide-react';
+import { History, Settings, Home, MessageCircle } from 'lucide-react';
 
 const menuItems = [
   {
@@ -22,6 +22,11 @@ const menuItems = [
     href: '/dashboard/character-settings',
     icon: Settings,
   },
+  {
+    title: '카드 메세지',
+    href: '/dashboard/card-messages',
+    icon: MessageCircle,
+  },
 ];
 
 export function Sidebar() {
@@ -34,7 +39,7 @@ export function Sidebar() {
         <p className="text-sm text-muted-foreground">대시보드</p>
       </div>
       
-      <nav className="space-y-2">
+      <nav className="flex flex-col space-y-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;

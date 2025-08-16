@@ -15,6 +15,9 @@ export interface Character {
   is_active?: boolean;
   usage_count?: number;
   last_used?: string;
+  picture_cartoon?: Array<{ url: string }> | null;
+  picture_select?: string | null; // 캐릭터 선택용 이미지 (단일 이미지)
+  picture_character?: string | null; // 캐릭터 상세 이미지 (단일 이미지)
 }
 
 export interface Statistics {
@@ -45,6 +48,12 @@ export interface Image {
   created_at: string;
   job_id?: string;
   url?: string;
+}
+
+export interface Message {
+  id: number;
+  created_at: string;
+  messages?: string;
 }
 
 // 프론트엔드에서 사용할 추가 타입들
