@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X, ImageIcon } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
 
 interface SingleImageUploadProps {
@@ -24,7 +24,6 @@ export function SingleImageUpload({
   imageType 
 }: SingleImageUploadProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl || null);
-  const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +41,6 @@ export function SingleImageUpload({
 
     // 미리보기 생성
     const previewUrl = URL.createObjectURL(selectedFile);
-    setFile(selectedFile);
     setPreview(previewUrl);
 
     // 이미지 업로드 시작
@@ -74,7 +72,6 @@ export function SingleImageUpload({
       const data = await response.json();
       
       setImageUrl(data.url);
-      setFile(null);
       setPreview(null);
       
       // 상위 컴포넌트에 변경사항 알림
@@ -110,7 +107,6 @@ export function SingleImageUpload({
 
     // 로컬 상태 업데이트
     setImageUrl(null);
-    setFile(null);
     
     // 미리보기 URL 정리
     if (preview) {

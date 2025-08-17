@@ -2,9 +2,13 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // GET: 모든 메세지 조회
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
 
     const {
       data: { user },
@@ -24,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(messages);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '메세지를 불러오는 중 오류가 발생했습니다.' },
       { status: 500 }
@@ -36,6 +40,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
 
     const {
       data: { user },
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '메세지 생성 중 오류가 발생했습니다.' },
       { status: 500 }

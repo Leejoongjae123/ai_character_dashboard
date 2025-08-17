@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const buffer = new Uint8Array(arrayBuffer);
 
     // Supabase Storage에 업로드
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('character')
       .upload(fileName, buffer, {
         contentType: file.type,
@@ -75,7 +75,13 @@ export async function POST(request: NextRequest) {
       .from('character')
       .getPublicUrl(fileName);
 
-    const responseData: any = {
+    const responseData: {
+      url: string;
+      fileName: string;
+      message: string;
+      slotIndex?: number;
+      imageType?: string;
+    } = {
       url: publicUrl,
       fileName: fileName,
       message: '이미지가 성공적으로 업로드되었습니다'
@@ -139,7 +145,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: '파일 삭제에 실패했습니다' }, { status: 500 });
     }
 
-    const responseData: any = {
+    const responseData: {
+      message: string;
+      characterId: string;
+      slotIndex?: number;
+      imageType?: string;
+    } = {
       message: '이미지가 성공적으로 삭제되었습니다',
       characterId
     };

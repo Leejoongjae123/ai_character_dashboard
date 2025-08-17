@@ -24,22 +24,23 @@ interface LogWithCharacter {
 }
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-  const characterId = searchParams.get('characterId');
-  const search = searchParams.get('search');
-  const dateFrom = searchParams.get('dateFrom');
-  const dateTo = searchParams.get('dateTo');
-  const abilityType = searchParams.get('abilityType');
-
-  if (!userId) {
-    return NextResponse.json({ error: '사용자 ID가 필요합니다' }, { status: 400 });
-  }
-
   try {
+    const supabase = await createClient();
+    
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const characterId = searchParams.get('characterId');
+    const search = searchParams.get('search');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    const abilityType = searchParams.get('abilityType');
+
+    if (!userId) {
+      return NextResponse.json({ error: '사용자 ID가 필요합니다' }, { status: 400 });
     }
 
     // logs와 character를 조인하여 조회

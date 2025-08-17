@@ -7,12 +7,18 @@ interface Params {
 
 // PUT: 메세지 수정
 export async function PUT(
+  
   request: NextRequest,
   context: { params: Promise<Params> }
 ) {
+  
   try {
     const { id } = await context.params;
     const supabase = await createClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
 
     const {
       data: { user },
@@ -47,7 +53,7 @@ export async function PUT(
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '메세지 수정 중 오류가 발생했습니다.' },
       { status: 500 }
@@ -63,6 +69,10 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     const supabase = await createClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase 연결 오류' }, { status: 500 });
+    }
 
     const {
       data: { user },
@@ -82,7 +92,7 @@ export async function DELETE(
     }
 
     return NextResponse.json({ message: '메세지가 삭제되었습니다.' });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: '메세지 삭제 중 오류가 발생했습니다.' },
       { status: 500 }
