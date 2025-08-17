@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DashboardStats } from './components/dashboard-stats';
-import { RecentActivity } from './components/recent-activity';
+import { UsageChart } from './components/usage-chart';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -12,7 +12,9 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -22,7 +24,10 @@ export default async function DashboardPage() {
       </div>
       
       <DashboardStats userId={user.id} />
-      <RecentActivity userId={user.id} />
+      
+      <div className="grid grid-cols-1 gap-6">
+        <UsageChart userId={user.id} />
+      </div>
     </div>
   );
 } 

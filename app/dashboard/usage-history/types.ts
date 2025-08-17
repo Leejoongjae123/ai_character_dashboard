@@ -1,27 +1,27 @@
 export interface UsageLog {
   id: number;
   created_at: string;
-  character_id: number;
-  prompt: Record<string, unknown> | string | null; // jsonb
-  origin_image?: string;
-  character_image?: string;
-  ability1?: string;
-  ability1_min?: number;
-  ability1_max?: number;
-  ability2?: string;
-  ability2_min?: number;
-  ability2_max?: number;
-  // character 정보 조인해서 가져올 데이터
-  character?: {
-    name: string;
-    role: string;
-  };
+  job_id: string | null;
+  picture_camera: string | null;
+  result: Record<string, unknown> | null; // jsonb - 이것이 중요한 데이터
 }
 
 export interface UsageLogFilter {
   search?: string;
-  characterId?: number;
   dateFrom?: string;
   dateTo?: string;
-  abilityType?: string;
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface UsageHistoryResponse {
+  data: UsageLog[];
+  pagination: PaginationInfo;
 } 

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
-import { BarChart3, Users, Activity, Star } from 'lucide-react';
+import { BarChart3, Users, Star } from 'lucide-react';
 
 interface DashboardStatsProps {
   userId: string;
@@ -15,8 +15,7 @@ export async function DashboardStats({ userId }: DashboardStatsProps) {
   // 통계 데이터 조회
   const [
     { data: characters },
-    { data: statistics },
-    { data: recentLogs },
+    { data: images },
   ] = await Promise.all([
     supabase
       .from('character')
@@ -24,26 +23,38 @@ export async function DashboardStats({ userId }: DashboardStatsProps) {
       .eq('user_id', userId)
       .eq('is_active', true),
     supabase
-      .from('statistics')
-      .select('*')
-      .eq('user_id', userId)
-      .single(),
-    supabase
-      .from('logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5),
+      .from('image')
+      .select('result'),
   ]);
 
   const totalCharacters = characters?.length || 0;
-  const totalUsage = statistics?.total_usage_count || 0;
-  const favoriteCharacterId = statistics?.favorite_character_id;
-  const recentActivity = recentLogs?.length || 0;
+  // image 테이블의 갯수로 총 사용량 계산
+  const totalUsage = images?.length || 0;
+
+  // image 테이블의 result에서 character_id 추출하여 선호 캐릭터 계산
+  const characterUsageMap = new Map<string, number>();
+  
+  images?.forEach((image) => {
+    if (image.result && image.result.character_id) {
+      const characterId = image.result.character_id;
+      characterUsageMap.set(characterId, (characterUsageMap.get(characterId) || 0) + 1);
+    }
+  });
+
+  // 가장 많이 사용된 캐릭터 찾기
+  let favoriteCharacterId: string | null = null;
+  let maxUsage = 0;
+  
+  for (const [characterId, usageCount] of characterUsageMap.entries()) {
+    if (usageCount > maxUsage) {
+      maxUsage = usageCount;
+      favoriteCharacterId = characterId;
+    }
+  }
 
   // 선호 캐릭터 정보 조회
   const favoriteCharacter = favoriteCharacterId 
-    ? characters?.find(c => c.id === favoriteCharacterId)
+    ? characters?.find(c => c.id.toString() === favoriteCharacterId)
     : null;
 
   const statsCards = [
@@ -57,13 +68,7 @@ export async function DashboardStats({ userId }: DashboardStatsProps) {
       title: '총 사용량',
       value: totalUsage.toString(),
       icon: BarChart3,
-      description: '누적 사용 횟수',
-    },
-    {
-      title: '최근 활동',
-      value: recentActivity.toString(),
-      icon: Activity,
-      description: '최근 5개 활동',
+      description: '이미지 생성 횟수',
     },
     {
       title: '선호 캐릭터',
@@ -74,7 +79,7 @@ export async function DashboardStats({ userId }: DashboardStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {statsCards.map((stat) => {
         const Icon = stat.icon;
         return (

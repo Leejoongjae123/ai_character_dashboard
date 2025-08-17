@@ -19,23 +19,28 @@ export function UsageHistoryTable({ logs, onRowClick }: UsageHistoryTableProps) 
     return formatDistanceToNow(date, { addSuffix: true, locale: ko });
   };
 
-  const formatAbilityRange = (ability: string | undefined, min: number | undefined, max: number | undefined) => {
-    if (!ability) return '-';
-    if (min !== undefined && max !== undefined) {
-      return `${ability} (${min}-${max})`;
+  const truncateText = (text: string, maxLength: number = 50) => {
+    if (text.length <= maxLength) {
+      return text;
     }
-    return ability;
+    return text.substring(0, maxLength) + '...';
   };
 
-  const truncateText = (text: string, maxLength: number = 50) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  const formatJsonPreview = (obj: Record<string, unknown> | null) => {
+    if (!obj) {
+      return '-';
+    }
+    const keys = Object.keys(obj);
+    if (keys.length === 0) {
+      return '빈 객체';
+    }
+    return `${keys.length}개 필드: ${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '...' : ''}`;
   };
 
   if (logs.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        사용이력이 없습니다
+        이미지 생성 이력이 없습니다
       </div>
     );
   }
@@ -45,14 +50,11 @@ export function UsageHistoryTable({ logs, onRowClick }: UsageHistoryTableProps) 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>날짜</TableHead>
-            <TableHead>캐릭터</TableHead>
-            <TableHead>역할</TableHead>
-            <TableHead>능력 1</TableHead>
-            <TableHead>능력 2</TableHead>
-            <TableHead>프롬프트</TableHead>
-            <TableHead>이미지</TableHead>
-            <TableHead className="w-20">작업</TableHead>
+            <TableHead>생성 날짜</TableHead>
+            <TableHead>Job ID</TableHead>
+            <TableHead>카메라 정보</TableHead>
+            <TableHead>결과 데이터</TableHead>
+            <TableHead className="w-20">상세보기</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -74,56 +76,20 @@ export function UsageHistoryTable({ logs, onRowClick }: UsageHistoryTableProps) 
               </TableCell>
               
               <TableCell>
-                <div className="font-medium">
-                  {log.character?.name || '알 수 없음'}
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <Badge variant="secondary">
-                  {log.character?.role || '미지정'}
-                </Badge>
-              </TableCell>
-              
-              <TableCell>
-                <div className="text-sm">
-                  {formatAbilityRange(log.ability1, log.ability1_min, log.ability1_max)}
+                <div className="font-mono text-sm">
+                  {log.job_id ? truncateText(log.job_id, 20) : '-'}
                 </div>
               </TableCell>
               
               <TableCell>
                 <div className="text-sm">
-                  {formatAbilityRange(log.ability2, log.ability2_min, log.ability2_max)}
+                  {log.picture_camera ? truncateText(log.picture_camera, 30) : '-'}
                 </div>
               </TableCell>
               
               <TableCell>
-                <div className="text-sm text-muted-foreground max-w-xs">
-                  {log.prompt ? (
-                    typeof log.prompt === 'string' 
-                      ? truncateText(log.prompt)
-                      : truncateText(JSON.stringify(log.prompt))
-                  ) : '-'}
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  {log.origin_image && (
-                    <Badge variant="outline" className="text-xs">
-                      <ImageIcon className="w-3 h-3 mr-1" />
-                      원본
-                    </Badge>
-                  )}
-                  {log.character_image && (
-                    <Badge variant="outline" className="text-xs">
-                      <ImageIcon className="w-3 h-3 mr-1" />
-                      캐릭터
-                    </Badge>
-                  )}
-                  {!log.origin_image && !log.character_image && (
-                    <span className="text-xs text-muted-foreground">-</span>
-                  )}
+                <div className="text-sm text-muted-foreground">
+                  {formatJsonPreview(log.result)}
                 </div>
               </TableCell>
               

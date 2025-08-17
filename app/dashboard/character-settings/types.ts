@@ -1,3 +1,5 @@
+import { Character } from '@/lib/types';
+
 export interface CharacterFilter {
   search?: string;
   role?: string;
@@ -15,4 +17,18 @@ export interface CharacterFormData {
   ability2_min: number;
   ability2_max: number;
   is_active: boolean;
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface CharacterApiResponse {
+  data: Character[];
+  pagination: PaginationInfo;
 } 

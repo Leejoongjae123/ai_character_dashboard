@@ -53,13 +53,14 @@ export function CharacterFilters({ characters, onFilter }: CharacterFiltersProps
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <label className="text-sm font-medium text-muted-foreground">역할</label>
           <Select 
+            
             value={filters.role || 'all'} 
             onValueChange={(value) => handleFilterChange('role', value === 'all' ? undefined : value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="전체" />
             </SelectTrigger>
             <SelectContent>
@@ -73,7 +74,7 @@ export function CharacterFilters({ characters, onFilter }: CharacterFiltersProps
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <label className="text-sm font-medium text-muted-foreground">상태</label>
           <Select 
             value={filters.isActive === undefined ? 'all' : filters.isActive.toString()} 
@@ -81,7 +82,7 @@ export function CharacterFilters({ characters, onFilter }: CharacterFiltersProps
               handleFilterChange('isActive', value === 'all' ? undefined : value === 'true')
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="전체" />
             </SelectTrigger>
             <SelectContent>

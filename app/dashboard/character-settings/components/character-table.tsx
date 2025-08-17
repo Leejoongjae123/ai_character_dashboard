@@ -11,13 +11,16 @@ import { Edit } from 'lucide-react';
 interface CharacterTableProps {
   characters: Character[];
   onRowClick: (character: Character) => void;
+  totalCount?: number;
 }
 
-export function CharacterTable({ characters, onRowClick }: CharacterTableProps) {
+export function CharacterTable({ characters, onRowClick, totalCount }: CharacterTableProps) {
+  const displayCount = totalCount ?? characters.length;
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>캐릭터 목록 ({characters.length}개)</CardTitle>
+        <CardTitle>캐릭터 목록 (총 {displayCount}개)</CardTitle>
       </CardHeader>
       <CardContent>
         {characters.length > 0 ? (
@@ -27,9 +30,7 @@ export function CharacterTable({ characters, onRowClick }: CharacterTableProps) 
                 <TableHead>이름</TableHead>
                 <TableHead>역할</TableHead>
                 <TableHead>능력</TableHead>
-                <TableHead>사용횟수</TableHead>
                 <TableHead>상태</TableHead>
-                <TableHead>최근 사용</TableHead>
                 <TableHead className="w-[50px]">편집</TableHead>
               </TableRow>
             </TableHeader>
@@ -73,34 +74,13 @@ export function CharacterTable({ characters, onRowClick }: CharacterTableProps) 
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="text-center">
-                      <p className="font-medium">{character.usage_count || 0}</p>
-                      <p className="text-xs text-muted-foreground">회</p>
-                    </div>
-                  </TableCell>
+
                   <TableCell>
                     <Badge variant={character.is_active ? "default" : "secondary"}>
                       {character.is_active ? '활성' : '비활성'}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {character.last_used ? (
-                      <div>
-                        <p className="text-sm">
-                          {formatDistanceToNow(new Date(character.last_used), {
-                            addSuffix: true,
-                            locale: ko,
-                          })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(character.last_used).toLocaleDateString('ko-KR')}
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">사용 안함</span>
-                    )}
-                  </TableCell>
+
                   <TableCell>
                     <Edit className="h-4 w-4 text-muted-foreground" />
                   </TableCell>

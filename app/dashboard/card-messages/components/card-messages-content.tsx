@@ -1,34 +1,59 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageFilter } from '../types';
+import { MessageFilter, PaginationInfo, MessageResponse } from '../types';
 import { CardMessagesFilters } from './card-messages-filters';
 import { CardMessagesTable } from './card-messages-table';
 import { CardMessagesModal } from './card-messages-modal';
+import { CardMessagesPagination } from './card-messages-pagination';
 import { Message } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 export function CardMessagesContent() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+  const [currentFilters, setCurrentFilters] = useState<MessageFilter>({});
 
   useEffect(() => {
-    fetchMessages();
+    fetchMessages(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (page: number = pagination.currentPage, filters: MessageFilter = currentFilters) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/messages');
+      const searchParams = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.itemsPerPage.toString(),
+      });
+
+      if (filters.search) {
+        searchParams.append('search', filters.search);
+      }
+      if (filters.dateFrom) {
+        searchParams.append('dateFrom', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        searchParams.append('dateTo', filters.dateTo);
+      }
+
+      const response = await fetch(`/api/messages?${searchParams}`);
       if (response.ok) {
-        const data = await response.json();
-        setMessages(data);
-        setFilteredMessages(data);
+        const data: MessageResponse = await response.json();
+        setMessages(data.data);
+        setPagination(data.pagination);
       }
     } catch (error) {
       console.log('메세지 로딩 중 오류:', error);
@@ -38,28 +63,14 @@ export function CardMessagesContent() {
   };
 
   const handleFilter = (filters: MessageFilter) => {
-    let filtered = [...messages];
+    setCurrentFilters(filters);
+    fetchMessages(1, filters); // 필터가 변경되면 첫 페이지부터 다시 시작
+  };
 
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(message => 
-        message.messages?.toLowerCase().includes(searchTerm)
-      );
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      fetchMessages(newPage, currentFilters);
     }
-
-    if (filters.dateFrom) {
-      filtered = filtered.filter(message => 
-        new Date(message.created_at) >= new Date(filters.dateFrom!)
-      );
-    }
-
-    if (filters.dateTo) {
-      filtered = filtered.filter(message => 
-        new Date(message.created_at) <= new Date(filters.dateTo!)
-      );
-    }
-
-    setFilteredMessages(filtered);
   };
 
   const handleRowClick = (message: Message) => {
@@ -78,7 +89,7 @@ export function CardMessagesContent() {
     setIsModalOpen(false);
     setSelectedMessage(null);
     setIsCreating(false);
-    fetchMessages(); // 변경사항 반영을 위해 다시 로드
+    fetchMessages(pagination.currentPage, currentFilters); // 변경사항 반영을 위해 다시 로드
   };
 
   if (loading) {
@@ -100,8 +111,15 @@ export function CardMessagesContent() {
       />
       
       <CardMessagesTable 
-        messages={filteredMessages}
+        messages={messages}
         onRowClick={handleRowClick}
+        totalItems={pagination.totalItems}
+      />
+
+      <CardMessagesPagination 
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        loading={loading}
       />
 
       <CardMessagesModal 

@@ -1,50 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { UsageLogFilter } from '../types';
-import { Character } from '@/lib/types';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, X } from 'lucide-react';
 
 interface UsageHistoryFiltersProps {
   onFilter: (filters: UsageLogFilter) => void;
-  userId: string;
 }
 
-export function UsageHistoryFilters({ onFilter, userId }: UsageHistoryFiltersProps) {
-  const [characters, setCharacters] = useState<Character[]>([]);
+export function UsageHistoryFilters({ onFilter }: UsageHistoryFiltersProps) {
   const [filters, setFilters] = useState<UsageLogFilter>({});
 
-  useEffect(() => {
-    fetchCharacters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
-  const fetchCharacters = async () => {
-    try {
-      const response = await fetch(`/api/characters?userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setCharacters(data);
-      }
-    } catch (error) {
-      console.error('캐릭터 로딩 중 오류:', error);
-    }
-  };
-
-  const handleFilterChange = (key: keyof UsageLogFilter, value: string | number | undefined) => {
+  const handleFilterChange = (key: keyof UsageLogFilter, value: string | undefined) => {
     const newFilters = { ...filters };
     
-    if (value === undefined || value === '' || value === 'all') {
+    if (value === undefined || value === '') {
       delete newFilters[key];
     } else {
-      if (key === 'characterId') {
-        newFilters[key] = value as number;
-      } else {
-        (newFilters as Record<string, string | number>)[key] = value;
-      }
+      (newFilters as Record<string, string>)[key] = value;
     }
     
     setFilters(newFilters);
@@ -65,51 +40,14 @@ export function UsageHistoryFilters({ onFilter, userId }: UsageHistoryFiltersPro
         <div className="relative flex-1 min-w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="캐릭터명, 역할, 능력으로 검색..."
+            placeholder="Job ID, 카메라 정보로 검색..."
             value={filters.search || ''}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             className="pl-10"
           />
         </div>
 
-        {/* 캐릭터 선택 */}
-        <Select 
-          value={filters.characterId?.toString() || 'all'} 
-          onValueChange={(value) => handleFilterChange('characterId', value === 'all' ? undefined : parseInt(value))}
-        >
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="캐릭터 선택" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">모든 캐릭터</SelectItem>
-            {characters.map((character) => (
-              <SelectItem key={character.id} value={character.id.toString()}>
-                {character.name} ({character.role})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* 능력 타입 */}
-        <Select 
-          value={filters.abilityType || 'all'} 
-          onValueChange={(value) => handleFilterChange('abilityType', value === 'all' ? undefined : value)}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="능력 타입" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">모든 능력</SelectItem>
-            <SelectItem value="창의성">창의성</SelectItem>
-            <SelectItem value="분석력">분석력</SelectItem>
-            <SelectItem value="감정이입">감정이입</SelectItem>
-            <SelectItem value="논리력">논리력</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* 날짜 필터 */}
-      <div className="flex items-center gap-4 flex-wrap">
+        {/* 날짜 필터 */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">기간:</span>
           <Input

@@ -10,13 +10,14 @@ import { Edit } from 'lucide-react';
 interface CardMessagesTableProps {
   messages: Message[];
   onRowClick: (message: Message) => void;
+  totalItems?: number;
 }
 
-export function CardMessagesTable({ messages, onRowClick }: CardMessagesTableProps) {
+export function CardMessagesTable({ messages, onRowClick, totalItems }: CardMessagesTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>메세지 목록 ({messages.length}개)</CardTitle>
+        <CardTitle>메세지 목록 ({totalItems !== undefined ? totalItems : messages.length}개)</CardTitle>
       </CardHeader>
       <CardContent>
         {messages.length > 0 ? (

@@ -1,26 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// Supabase에서 반환되는 데이터 타입 정의
-interface LogWithCharacter {
+// Image 테이블 데이터 타입 정의
+interface ImageRecord {
   id: number;
   created_at: string;
-  character_id: number;
-  prompt: Record<string, unknown> | string | null;
-  origin_image?: string;
-  character_image?: string;
-  ability1?: string;
-  ability1_min?: number;
-  ability1_max?: number;
-  ability2?: string;
-  ability2_min?: number;
-  ability2_max?: number;
-  character: {
-    id: number;
-    name: string;
-    role: string;
-    user_id: string;
-  } | null;
+  job_id: string | null;
+  picture_camera: string | null;
+  result: Record<string, unknown> | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -32,74 +19,68 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const characterId = searchParams.get('characterId');
     const search = searchParams.get('search');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
-    const abilityType = searchParams.get('abilityType');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    
+    // Pagination 계산
+    const offset = (page - 1) * limit;
 
-    if (!userId) {
-      return NextResponse.json({ error: '사용자 ID가 필요합니다' }, { status: 400 });
-    }
-
-    // logs와 character를 조인하여 조회
+    // image 테이블 조회
     let query = supabase
-      .from('logs')
-      .select(`
-        *,
-        character:character_id (
-          id,
-          name,
-          role,
-          user_id
-        )
-      `)
-      .eq('character.user_id', userId)
+      .from('image')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
-
-    // 캐릭터 ID 필터
-    if (characterId) {
-      query = query.eq('character_id', characterId);
-    }
 
     // 날짜 범위 필터
     if (dateFrom) {
       query = query.gte('created_at', dateFrom);
     }
     if (dateTo) {
-      query = query.lte('created_at', dateTo);
+      const dateTo24h = new Date(dateTo);
+      dateTo24h.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', dateTo24h.toISOString());
     }
 
-    const { data: logs, error } = await query as { data: LogWithCharacter[] | null, error: Error | null };
+    // 검색 필터
+    if (search) {
+      query = query.or(`job_id.ilike.%${search}%,picture_camera.ilike.%${search}%`);
+    }
+
+    // Pagination 적용
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: images, error, count } = await query as { 
+      data: ImageRecord[] | null, 
+      error: Error | null,
+      count: number | null 
+    };
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 검색 필터 (클라이언트에서 처리하기 위해 모든 데이터 반환 후 필터링)
-    let filteredLogs: LogWithCharacter[] = logs || [];
+    // 페이지네이션 정보 계산
+    const totalPages = Math.ceil((count || 0) / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
 
-    if (search) {
-      const searchTerm = search.toLowerCase();
-      filteredLogs = filteredLogs.filter((log: LogWithCharacter) => 
-        log.character?.name?.toLowerCase().includes(searchTerm) ||
-        log.character?.role?.toLowerCase().includes(searchTerm) ||
-        log.ability1?.toLowerCase().includes(searchTerm) ||
-        log.ability2?.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    if (abilityType) {
-      filteredLogs = filteredLogs.filter((log: LogWithCharacter) => 
-        log.ability1?.includes(abilityType) || log.ability2?.includes(abilityType)
-      );
-    }
-
-    return NextResponse.json(filteredLogs);
-  } catch {
+    return NextResponse.json({
+      data: images || [],
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: count || 0,
+        itemsPerPage: limit,
+        hasNextPage,
+        hasPrevPage
+      }
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: '사용이력 조회 중 오류가 발생했습니다' },
+      { error: '이미지 이력 조회 중 오류가 발생했습니다' },
       { status: 500 }
     );
   }

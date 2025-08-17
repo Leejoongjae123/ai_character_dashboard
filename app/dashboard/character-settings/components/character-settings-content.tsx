@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CharacterFilter } from '../types';
+import { CharacterFilter, CharacterApiResponse, PaginationInfo } from '../types';
 import { CharacterFilters } from './character-filters';
 import { CharacterTable } from './character-table';
 import { CharacterModal } from './character-modal';
+import { CharacterPagination } from './character-pagination';
 import { Character } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -20,20 +21,38 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+  const [currentFilters, setCurrentFilters] = useState<CharacterFilter>({});
 
   useEffect(() => {
-    fetchCharacters();
+    fetchCharacters(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const fetchCharacters = async () => {
+  const fetchCharacters = async (page: number = pagination.currentPage, filters: CharacterFilter = currentFilters) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/characters?userId=${userId}`);
+      const params = new URLSearchParams({
+        userId,
+        page: page.toString(),
+        limit: pagination.itemsPerPage.toString()
+      });
+
+      const response = await fetch(`/api/characters?${params}`);
       if (response.ok) {
-        const data = await response.json();
-        setCharacters(data);
-        setFilteredCharacters(data);
+        const data: CharacterApiResponse = await response.json();
+        setCharacters(data.data);
+        setPagination(data.pagination);
+        
+        // 필터 적용
+        applyFilters(data.data, filters);
       }
     } catch (error) {
       console.error('캐릭터 로딩 중 오류:', error);
@@ -42,8 +61,8 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
     }
   };
 
-  const handleFilter = (filters: CharacterFilter) => {
-    let filtered = [...characters];
+  const applyFilters = (data: Character[], filters: CharacterFilter) => {
+    let filtered = [...data];
 
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
@@ -65,6 +84,15 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
     setFilteredCharacters(filtered);
   };
 
+  const handleFilter = (filters: CharacterFilter) => {
+    setCurrentFilters(filters);
+    applyFilters(characters, filters);
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchCharacters(page, currentFilters);
+  };
+
   const handleRowClick = (character: Character) => {
     setSelectedCharacter(character);
     setIsCreating(false);
@@ -81,7 +109,7 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
     setIsModalOpen(false);
     setSelectedCharacter(null);
     setIsCreating(false);
-    fetchCharacters(); // 변경사항 반영을 위해 다시 로드
+    fetchCharacters(pagination.currentPage, currentFilters); // 변경사항 반영을 위해 다시 로드
   };
 
   if (loading) {
@@ -105,6 +133,12 @@ export function CharacterSettingsContent({ userId }: CharacterSettingsContentPro
       <CharacterTable 
         characters={filteredCharacters}
         onRowClick={handleRowClick}
+        totalCount={pagination.totalItems}
+      />
+
+      <CharacterPagination 
+        pagination={pagination}
+        onPageChange={handlePageChange}
       />
 
       <CharacterModal 

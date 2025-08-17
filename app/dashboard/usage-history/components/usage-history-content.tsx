@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UsageLogFilter, UsageLog } from '../types';
+import { UsageLogFilter, UsageLog, UsageHistoryResponse, PaginationInfo } from '../types';
 import { UsageHistoryFilters } from './usage-history-filters';
 import { UsageHistoryTable } from './usage-history-table';
 import { UsageHistoryModal } from './usage-history-modal';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface UsageHistoryContentProps {
   userId: string;
@@ -12,72 +14,64 @@ interface UsageHistoryContentProps {
 
 export function UsageHistoryContent({ userId }: UsageHistoryContentProps) {
   const [logs, setLogs] = useState<UsageLog[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<UsageLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<UsageLog | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
+  const [currentFilters, setCurrentFilters] = useState<UsageLogFilter>({});
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs(1); // 첫 페이지부터 시작
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (page: number = pagination.currentPage, filters: UsageLogFilter = currentFilters) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/logs?userId=${userId}`);
+      const searchParams = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.itemsPerPage.toString(),
+      });
+
+      if (filters.search) {
+        searchParams.append('search', filters.search);
+      }
+      if (filters.dateFrom) {
+        searchParams.append('dateFrom', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        searchParams.append('dateTo', filters.dateTo);
+      }
+
+      const response = await fetch(`/api/logs?${searchParams}`);
       if (response.ok) {
-        const data = await response.json();
-        setLogs(data);
-        setFilteredLogs(data);
+        const data: UsageHistoryResponse = await response.json();
+        setLogs(data.data);
+        setPagination(data.pagination);
       }
     } catch (error) {
-      console.error('사용이력 로딩 중 오류:', error);
+      // 에러 처리 생략
     } finally {
       setLoading(false);
     }
   };
 
   const handleFilter = (filters: UsageLogFilter) => {
-    let filtered = [...logs];
+    setCurrentFilters(filters);
+    fetchLogs(1, filters); // 필터가 변경되면 첫 페이지부터 다시 시작
+  };
 
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(log => 
-        log.character?.name?.toLowerCase().includes(searchTerm) ||
-        log.character?.role?.toLowerCase().includes(searchTerm) ||
-        log.ability1?.toLowerCase().includes(searchTerm) ||
-        log.ability2?.toLowerCase().includes(searchTerm) ||
-        (log.prompt && JSON.stringify(log.prompt).toLowerCase().includes(searchTerm))
-      );
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      fetchLogs(newPage, currentFilters);
     }
-
-    if (filters.characterId) {
-      filtered = filtered.filter(log => log.character_id === filters.characterId);
-    }
-
-    if (filters.dateFrom) {
-      filtered = filtered.filter(log => 
-        new Date(log.created_at) >= new Date(filters.dateFrom!)
-      );
-    }
-
-    if (filters.dateTo) {
-      const dateTo = new Date(filters.dateTo);
-      dateTo.setHours(23, 59, 59, 999); // 해당 날짜의 끝까지 포함
-      filtered = filtered.filter(log => 
-        new Date(log.created_at) <= dateTo
-      );
-    }
-
-    if (filters.abilityType) {
-      filtered = filtered.filter(log => 
-        log.ability1?.includes(filters.abilityType!) || 
-        log.ability2?.includes(filters.abilityType!)
-      );
-    }
-
-    setFilteredLogs(filtered);
   };
 
   const handleRowClick = (log: UsageLog) => {
@@ -98,22 +92,81 @@ export function UsageHistoryContent({ userId }: UsageHistoryContentProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-semibold">전체 사용이력</h2>
+          <h2 className="text-lg font-semibold">이미지 생성 이력</h2>
           <p className="text-sm text-muted-foreground">
-            총 {filteredLogs.length}개의 사용이력이 있습니다
+            총 {pagination.totalItems}개의 이미지 생성 이력이 있습니다
           </p>
         </div>
       </div>
       
       <UsageHistoryFilters 
         onFilter={handleFilter}
-        userId={userId}
       />
       
       <UsageHistoryTable 
-        logs={filteredLogs}
+        logs={logs}
         onRowClick={handleRowClick}
       />
+
+      {/* Pagination UI */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          {pagination.totalItems > 0 ? (
+            <>
+              {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1}-
+              {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} 항목
+            </>
+          ) : (
+            '항목이 없습니다'
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(pagination.currentPage - 1)}
+            disabled={!pagination.hasPrevPage || loading}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            이전
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+              const pageNumber = Math.max(1, Math.min(
+                pagination.totalPages - 4,
+                pagination.currentPage - 2
+              )) + i;
+              
+              if (pageNumber <= pagination.totalPages) {
+                return (
+                  <Button
+                    key={pageNumber}
+                    variant={pageNumber === pagination.currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNumber)}
+                    disabled={loading}
+                  >
+                    {pageNumber}
+                  </Button>
+                );
+              }
+              return null;
+            })}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(pagination.currentPage + 1)}
+            disabled={!pagination.hasNextPage || loading}
+          >
+            다음
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
       <UsageHistoryModal 
         log={selectedLog}
