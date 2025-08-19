@@ -18,6 +18,7 @@ export interface Character {
   picture_cartoon?: Array<{ url: string }> | null;
   picture_select?: string | null; // 캐릭터 선택용 이미지 (단일 이미지)
   picture_character?: string | null; // 캐릭터 상세 이미지 (단일 이미지)
+  star_count?: number; // 별점 (1~5)
 }
 
 export interface Statistics {

@@ -12,6 +12,7 @@ import { CharacterFormData } from '../types';
 import { Trash2 } from 'lucide-react';
 import { ImageUploadSection } from './image-upload-section';
 import { SingleImageUpload } from './single-image-upload';
+import { StarRating } from './star-rating';
 
 interface CharacterModalProps {
   character: Character | null;
@@ -33,6 +34,7 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
     ability2_min: 0,
     ability2_max: 100,
     is_active: true,
+    star_count: 1,
   });
   
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,7 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
         ability2_min: character.ability2_min || 0,
         ability2_max: character.ability2_max || 100,
         is_active: character.is_active ?? true,
+        star_count: character.star_count || 1,
       });
       
       // picture_cartoon 데이터 로드
@@ -72,6 +75,7 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
         ability2_min: 0,
         ability2_max: 100,
         is_active: true,
+        star_count: 1,
       });
       setCharacterImages([]);
       setPictureSelect(null);
@@ -328,6 +332,13 @@ export function CharacterModal({ character, isOpen, isCreating, userId, onClose 
             />
             <Label htmlFor="is_active">활성 상태</Label>
           </div>
+
+          <StarRating
+            value={formData.star_count}
+            onChange={(value) => handleInputChange('star_count', value)}
+            label="캐릭터 별점"
+            description="캐릭터의 별점을 1~5개까지 설정할 수 있습니다."
+          />
 
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">

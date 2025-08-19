@@ -17,6 +17,7 @@ export interface CharacterFormData {
   ability2_min: number;
   ability2_max: number;
   is_active: boolean;
+  star_count: number; // 별점 (1~5)
 }
 
 export interface PaginationInfo {
