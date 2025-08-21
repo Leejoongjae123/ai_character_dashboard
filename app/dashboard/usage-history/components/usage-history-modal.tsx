@@ -2,7 +2,7 @@
 
 import { UsageLog } from '../types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -77,7 +77,7 @@ export function UsageHistoryModal({ log, isOpen, onClose }: UsageHistoryModalPro
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-    } catch (err) {
+    } catch {
       // 클립보드 복사 실패시 무시
     }
   };
@@ -88,7 +88,7 @@ export function UsageHistoryModal({ log, isOpen, onClose }: UsageHistoryModalPro
     value, 
     type = "text" 
   }: { 
-    icon: React.ComponentType<any>; 
+    icon: React.ComponentType<{ className?: string }>; 
     label: string; 
     value: string; 
     type?: "text" | "url" | "badge" | "time";
@@ -174,6 +174,7 @@ export function UsageHistoryModal({ log, isOpen, onClose }: UsageHistoryModalPro
         </CardHeader>
         <CardContent>
           <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={url} 
               alt={title}

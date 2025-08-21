@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale';
 
 interface ImageData {
   created_at: string;
-  result: any;
+  result: Record<string, unknown> | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -27,24 +27,16 @@ export async function GET(request: NextRequest) {
     // 기간에 따른 날짜 범위 설정
     const now = new Date();
     let startDate: Date;
-    let dateFormat: string;
-    let groupByFormat: string;
 
     switch (period) {
       case 'weekly':
         startDate = subWeeks(now, 4); // 4주
-        dateFormat = 'MM/dd';
-        groupByFormat = 'week';
         break;
       case 'monthly':
         startDate = subMonths(now, 6); // 6개월
-        dateFormat = 'yyyy/MM';
-        groupByFormat = 'month';
         break;
       default: // daily
         startDate = subDays(now, 7); // 7일
-        dateFormat = 'MM/dd';
-        groupByFormat = 'day';
         break;
     }
 
@@ -53,7 +45,7 @@ export async function GET(request: NextRequest) {
       .from('image')
       .select('created_at, result')
       .gte('created_at', startDate.toISOString())
-      .order('created_at', { ascending: true }) as { data: ImageData[] | null; error: any };
+      .order('created_at', { ascending: true }) as { data: ImageData[] | null; error: Error | null };
 
     if (error) {
       return NextResponse.json({ error: '데이터 조회 실패' }, { status: 500 });
@@ -127,7 +119,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(chartData);
 
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 });
   }
 }

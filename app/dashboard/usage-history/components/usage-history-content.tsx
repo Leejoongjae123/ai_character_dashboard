@@ -56,7 +56,7 @@ export function UsageHistoryContent({ userId }: UsageHistoryContentProps) {
         setLogs(data.data);
         setPagination(data.pagination);
       }
-    } catch (error) {
+    } catch {
       // 에러 처리 생략
     } finally {
       setLoading(false);

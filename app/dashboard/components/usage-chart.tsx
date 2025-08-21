@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, subDays, subWeeks, subMonths, startOfDay, startOfWeek, startOfMonth } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { ChartData, UsageChartProps, PeriodType } from './chart-types';
 
 export function UsageChart({ userId }: UsageChartProps) {
@@ -22,7 +20,7 @@ export function UsageChart({ userId }: UsageChartProps) {
           const chartData = await response.json();
           setData(chartData);
         }
-      } catch (error) {
+      } catch {
         console.log('차트 데이터 로딩 실패');
       } finally {
         setLoading(false);
